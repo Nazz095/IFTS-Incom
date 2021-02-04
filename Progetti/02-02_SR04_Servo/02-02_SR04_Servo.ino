@@ -10,18 +10,24 @@ void setup() {
    Serial.begin(9600);
    delay(1000);
    
-   Serial.println(F("Distance\t\tServoVal"));
+   Serial.println(F("Distance (cm)\tServoVal (0-180)"));
    myservo.attach(9);
 }
 
 void loop() {
    a=sr04.Distance();
-   Serial.print(a);
+   //Serial.print(a);
    //Serial.println("cm");
-   int xval = map(a, 0, 50, 0, 180);
-   myservo.write(xval);
-   Serial.print(F("\t\t"));
-   Serial.println(xval);
-   //Serial.println("cm");
-   delay(100);
+   while(a < 50)
+   {
+      Serial.print(a);
+     int xval = map(a, 0, 50, 0, 180);
+     myservo.write(xval);
+     Serial.print(F("\t\t"));
+     Serial.println(xval);
+     //Serial.println("cm");
+     delay(100);
+     a=sr04.Distance();
+     
+   }
 }

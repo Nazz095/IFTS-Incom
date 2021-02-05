@@ -35,18 +35,26 @@ void loop() {
         {
           lamp = Serial.read();
         }
+        Serial.println("Lampeggio. Inserire il multiplo di 100ms di lampeggi (da 1 a 9)");
+        unsigned char freq = Serial.read();
+        while (freq < '0' || freq > '9')
+        {
+          freq = Serial.read();
+        }
         Serial.print("Lampeggia ");
-        Serial.print(lamp - 48);
-        Serial.print(" volte: ");
+        Serial.write(lamp);
+        Serial.print(" volte, con la frequenza di ");
+        Serial.write(freq);
+        Serial.print("00ms: ");
         for (int i = 0; i < lamp - '0'; i++)
         {
           digitalWrite(LED, HIGH);
           Serial.print("acceso, ");
-          delay(500);
+          delay((freq - 48)*100);
           digitalWrite(LED, LOW);
           if(i == lamp - '0' - 1) Serial.println("spento");
           else Serial.print("spento, ");
-          delay(500);
+          delay((freq - 48)*100);
         }
         break;
       default:

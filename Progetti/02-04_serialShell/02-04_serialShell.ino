@@ -39,7 +39,7 @@ void loop() {
         
         break;
       default:
-        Serial.println("Comando non riconosciuto. Inserire 0 o 1!");
+        Serial.println("Comando non riconosciuto!");
         break;
     }
   }

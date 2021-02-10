@@ -28,14 +28,15 @@ void loop() {
       digitalWrite(RED_LED, LOW);
       digitalWrite(GREEN_LED, LOW);
       delay(500);
-      if(digitalRead(BUTTON)) 
+      if(digitalRead(BUTTON))
+        //se si lascia il tasto mentre esegue il ciclo
       {
         interrupted = 1;
         break;
       }
     }
   }
-  else
+  else    //se il tasto non è premuto
   {
     for(int pull_count = 0; pull_count < 10; pull_count++)
     {
@@ -53,6 +54,7 @@ void loop() {
       digitalWrite(GREEN_LED, LOW);
       delay(500);
       if(!digitalRead(BUTTON)) 
+        //se si preme il tasto mentre esegue il ciclo
       {
         interrupted = 1;
         break;

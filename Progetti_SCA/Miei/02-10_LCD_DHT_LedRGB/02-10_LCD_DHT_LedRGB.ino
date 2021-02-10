@@ -60,7 +60,6 @@ void loop() {
     Serial.print(hic);
     Serial.println(F("\t\t"));
     lcd.setCursor(0, 0);
-    lcd.print("                ");
     lcd.setCursor(0, 0);
     lcd.print("T:");
     lcd.setCursor(2, 0);
@@ -76,25 +75,19 @@ void loop() {
       digitalWrite(bluePin, HIGH);
       ledPinOn = bluePin;
       lcd.setCursor(7, 1);
-      lcd.print("             ");
-      lcd.setCursor(7, 1);
-      lcd.print("FaFreddo");
+      lcd.print("FaFreddo ");
     }
     else if (t > TEMPERATURA + ISTERESI) {
       ledPinOn = redPin;
       digitalWrite(greenPin, LOW);
       digitalWrite(bluePin, LOW);
       lcd.setCursor(7, 1);
-      lcd.print("             ");
-      lcd.setCursor(7, 1);
-      lcd.print("FaCaldo");
+      lcd.print("FaCaldo  ");
     }
     else {
       digitalWrite(redPin, LOW);
       ledPinOn = greenPin;
       digitalWrite(bluePin, LOW);
-      lcd.setCursor(7, 1);
-      lcd.print("             ");
       lcd.setCursor(7, 1);
       lcd.print("SiStaBene");
     }

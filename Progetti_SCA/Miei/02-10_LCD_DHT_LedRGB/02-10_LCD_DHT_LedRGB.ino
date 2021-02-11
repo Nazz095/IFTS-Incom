@@ -9,7 +9,7 @@ LiquidCrystal lcd(7, 8, 9, 10, 11, 12);
 #define DHTPIN 2
 #define DHTTYPE DHT11
 #define TEMPERATURA 25
-#define ISTERESI 1
+#define ISTERESI 1.0
 
 DHT dht(DHTPIN, DHTTYPE);
 
@@ -69,7 +69,7 @@ void loop() {
     lcd.setCursor(11, 0);
     lcd.print((int)h);
 
-    if (t < TEMPERATURA - ISTERESI) {
+    if (t < TEMPERATURA - ISTERESI/2) {
       digitalWrite(redPin, LOW);
       digitalWrite(greenPin, LOW);
       digitalWrite(bluePin, HIGH);
@@ -77,7 +77,7 @@ void loop() {
       lcd.setCursor(7, 1);
       lcd.print("FaFreddo ");
     }
-    else if (t > TEMPERATURA + ISTERESI) {
+    else if (t > TEMPERATURA + ISTERESI/2) {
       ledPinOn = redPin;
       digitalWrite(greenPin, LOW);
       digitalWrite(bluePin, LOW);

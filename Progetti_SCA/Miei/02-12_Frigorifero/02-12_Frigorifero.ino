@@ -11,30 +11,46 @@ LiquidCrystal lcd(7, 8, 9, 10, 11, 12);
 #define DHTTYPE DHT11
 DHT dht(DHTPIN, DHTTYPE);
 
-#define SOGLIA_BASE 25
-#define SOGLIA_MIN 10
-#define SOGLIA_MAX 35
-#define ISTERESI 1.0
+#include <EEPROM.h>
 
-const byte redPin = 3, greenPin = 5, bluePin = 6, buttonPlus = 4, buttonMinus = 13;
-const float correzione = 2.5;
+//uso LED non buzzer
+//const byte redPin = 3, greenPin = 5, bluePin = 6;
+const byte buttonPlus = 4, buttonMinus = 13, buzzer = 5,
+  SOGLIA_BASE = 3, SOGLIA_MIN = -10, SOGLIA_MAX = 5, CONTROLL_ADRESS = 255;
+const float correzione = 27, ISTERESI = 1.0;
+const unsigned short sogliAdress = 0;
+
+unsigned long tempo = millis(), lampeggio = millis(), indicatoreUmidita = millis(), lampChar = millis();
+//uso LED non buzzer
+//byte i = 255, luminosita = 1, ledPinOn;
+byte minusPushed = 0, plusPushed = 0, secondi = 0, minuti = 0, blCh = 0, 
+  controllo = EEPROM.read(CONTROLL_ADRESS);
+float soglia;
+unsigned char blinkChar;
 
 void setup() {
   lcd.begin(16, 2);
   dht.begin();
   Serial.begin(9600);
   Serial.println(F("Umidita'\tTemperatura\tIndiceCalore\tSoglia"));
-
-  pinMode(redPin, OUTPUT);
-  pinMode(greenPin, OUTPUT);
-  pinMode(bluePin, OUTPUT);
+  //uso LED non buzzer
+  //pinMode(redPin, OUTPUT);
+  //pinMode(greenPin, OUTPUT);
+  //pinMode(bluePin, OUTPUT);
   pinMode(buttonMinus, INPUT_PULLUP);
   pinMode(buttonPlus, INPUT_PULLUP);
+  pinMode(buzzer,OUTPUT);
+  
+  if ( controllo == 123 ) {
+    //Serial.println("ok");
+    EEPROM.get(sogliAdress,soglia);
+  } else {
+    //Serial.println("format");
+    EEPROM.put(sogliAdress, soglia);
+    controllo = 123;
+    EEPROM.put(CONTROLL_ADRESS, controllo);
+  }
 }
-
-unsigned long tempo = millis(), lampeggio = millis(), indicatoreUmidita = millis();
-byte i = 255, luminosita = 1, ledPinOn, minusPushed = 0, plusPushed = 0, secondi = 0, minuti = 0;
-float soglia = SOGLIA_BASE;
 
 void loop() {
   float h = dht.readHumidity();
@@ -71,38 +87,63 @@ void loop() {
     lcd.print(t, 1);
 
     if (t < soglia - ISTERESI / 2) {
-      digitalWrite(redPin, LOW);
-      digitalWrite(greenPin, LOW);
-      digitalWrite(bluePin, HIGH);
-      ledPinOn = bluePin;
+      //digitalWrite(redPin, LOW);
+      //digitalWrite(greenPin, LOW);
+      //digitalWrite(bluePin, HIGH);
+      //ledPinOn = bluePin;
       lcd.setCursor(10, 0);
       lcd.print("Freddo");
+      blinkChar = '.';
     }
     else if (t > soglia + ISTERESI / 2) {
-      ledPinOn = redPin;
-      digitalWrite(greenPin, LOW);
-      digitalWrite(bluePin, LOW);
+      //ledPinOn = redPin;
+      //digitalWrite(greenPin, LOW);
+      //digitalWrite(bluePin, LOW);
       lcd.setCursor(10, 0);
       lcd.print("Caldo ");
+      blinkChar = 'E';
+      //suono del buzzer
+      for(byte i=0;i<5;i++)
+     {
+      digitalWrite(buzzer,HIGH);
+      delay(1);//wait for 1ms
+      digitalWrite(buzzer,LOW);
+      delay(1);//wait for 1ms
+     }
     }
     else {
-      digitalWrite(redPin, LOW);
-      ledPinOn = greenPin;
-      digitalWrite(bluePin, LOW);
+      //digitalWrite(redPin, LOW);
+      //ledPinOn = greenPin;
+      //digitalWrite(bluePin, LOW);
       lcd.setCursor(10, 0);
       lcd.print("Giusto");
+      blinkChar = '.';
     }
     lcd.setCursor(5, 1);
     lcd.print(" ");
     lcd.setCursor(6, 1);
     lcd.print(soglia, 1);
-    lcd.setCursor(10, 1);
-    lcd.print("  H:    ");
+    lcd.setCursor(9, 1);
+    lcd.print("   H:    ");
     lcd.setCursor(14, 1);
     lcd.print((int)h);
   }
 
+  if((millis() - lampChar) > 500)
+  {
+    lampChar = millis();
+    lcd.setCursor(7,0);
+    if (!blCh) {
+      lcd.write(blinkChar);
+      blCh = 1;
+    }
+    else {
+      lcd.print(" ");
+      blCh = 0;
+    }
+  }
   // lampeggio graduale del LED indicato da ledPinOn
+  /*
   if ((millis() - lampeggio) > 30) {
     lampeggio = millis();
     if (i >= 255) {
@@ -118,16 +159,18 @@ void loop() {
       i += 5;
     }
     analogWrite(ledPinOn, i);
-  }
+  }*/
 
   // tasto di diminuzione della soglia schiacciato
   if (!digitalRead(buttonMinus) && !minusPushed) {
     indicatoreUmidita = millis();
     if (soglia == SOGLIA_MIN) {
       soglia = SOGLIA_MIN;
+      EEPROM.put(sogliAdress, soglia);
     }
     else {
       soglia -= 0.5;
+      EEPROM.put(sogliAdress, soglia);
     }
     minusPushed = 1;
   }
@@ -141,9 +184,11 @@ void loop() {
     indicatoreUmidita = millis();
     if (soglia == SOGLIA_MAX) {
       soglia = SOGLIA_MAX;
+      EEPROM.put(sogliAdress, soglia);
     }
     else {
       soglia += 0.5;
+      EEPROM.put(sogliAdress, soglia);
     }
     plusPushed = 1;
   }

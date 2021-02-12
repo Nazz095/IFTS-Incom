@@ -11,13 +11,16 @@ LiquidCrystal lcd(7, 8, 9, 10, 11, 12);
 #define DHTTYPE DHT11
 DHT dht(DHTPIN, DHTTYPE);
 
-#define SOGLIA_BASE 25
-#define SOGLIA_MIN 10
-#define SOGLIA_MAX 35
-#define ISTERESI 1.0
+#include <EEPROM.h>
 
-const byte redPin = 3, greenPin = 5, bluePin = 6, buttonPlus = 4, buttonMinus = 13;
-const float correzione = 2.5;
+const byte redPin = 3, greenPin = 5, bluePin = 6, buttonPlus = 4, buttonMinus = 13, 
+  SOGLIA_BASE = 25, SOGLIA_MIN = 10, SOGLIA_MAX = 35;
+const float correzione = 2.5, ISTERESI = 1.0;
+const unsigned short sogliAdress = 0;
+
+unsigned long tempo = millis(), lampeggio = millis(), indicatoreUmidita = millis();
+byte i = 255, luminosita = 1, ledPinOn, minusPushed = 0, plusPushed = 0, secondi = 0, minuti = 0;
+float soglia;
 
 void setup() {
   lcd.begin(16, 2);
@@ -30,11 +33,13 @@ void setup() {
   pinMode(bluePin, OUTPUT);
   pinMode(buttonMinus, INPUT_PULLUP);
   pinMode(buttonPlus, INPUT_PULLUP);
+  if (EEPROM.read(sogliAdress) < SOGLIA_MAX && EEPROM.read(sogliAdress) > SOGLIA_MIN){
+    soglia = EEPROM.read(sogliAdress);
+  }
+  else{
+    soglia = SOGLIA_BASE;
+  }
 }
-
-unsigned long tempo = millis(), lampeggio = millis(), indicatoreUmidita = millis();
-byte i = 255, luminosita = 1, ledPinOn, minusPushed = 0, plusPushed = 0, secondi = 0, minuti = 0;
-float soglia = SOGLIA_BASE;
 
 void loop() {
   float h = dht.readHumidity();
@@ -125,9 +130,11 @@ void loop() {
     indicatoreUmidita = millis();
     if (soglia == SOGLIA_MIN) {
       soglia = SOGLIA_MIN;
+      EEPROM.write(sogliAdress, soglia);
     }
     else {
       soglia -= 0.5;
+      EEPROM.write(sogliAdress, soglia);
     }
     minusPushed = 1;
   }
@@ -141,9 +148,11 @@ void loop() {
     indicatoreUmidita = millis();
     if (soglia == SOGLIA_MAX) {
       soglia = SOGLIA_MAX;
+      EEPROM.write(sogliAdress, soglia);
     }
     else {
       soglia += 0.5;
+      EEPROM.write(sogliAdress, soglia);
     }
     plusPushed = 1;
   }

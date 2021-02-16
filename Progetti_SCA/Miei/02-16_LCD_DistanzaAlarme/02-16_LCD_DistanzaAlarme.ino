@@ -41,45 +41,47 @@
 LiquidCrystal lcd(7, 8, 9, 10, 11, 12);
 
 #include "SR04.h"
-#define TRIG_PIN 5
-#define ECHO_PIN 6
+
+const byte buzzer = 13, TRIG_PIN = 5, ECHO_PIN = 6, distMin = 5, distMed = 10;
+
 SR04 sr04 = SR04(ECHO_PIN, TRIG_PIN);
 long a;
 
 unsigned long tempo = millis(), lampChar = millis();
-byte posizione = 0, j = 0, blCh = 0;
+byte posizione = 0, j = 0, blCh = 0, count = 0;
 unsigned char blinkChar = '.';
+unsigned somma = 0;
+float media;
 
 void setup() {
   Serial.begin(9600);
   delay(1000);
+  pinMode(buzzer, OUTPUT);
   // set up the LCD's number of columns and rows:
   lcd.begin(16, 2);
-  // Print a message to the LCD.
-  lcd.print("Hello, World!");
+  Serial.println("Distanza\tMedia");
+
 }
 
 void loop() {
 
   if ((millis() - tempo) > 500) {
     tempo = millis();
-    if (j == 3) posizione = 1;
+    if (j == 5) posizione = 1;
     else if (j == 0) posizione = 0;
     if (posizione == 0)j++;
     else if (posizione == 1) j--;
     lcd.setCursor(0, 0);
     lcd.print("                ");
     lcd.setCursor(j, 0);
-    lcd.print("Hello, World!");
+    //lcd.print("Hello, World!");
+    lcd.print("Dist. Media");
 
     a = sr04.Distance();
     Serial.print(a);
-    Serial.println("cm");
-  //}
-/*
- * stampa il punto lampeggiante
-  if ((millis() - lampChar) > 500)
-  {*/
+    Serial.print("\t\t");
+    Serial.println(media);
+
     //lampChar = millis();
     lcd.setCursor(0, 1);
     if (!blCh) {
@@ -90,20 +92,76 @@ void loop() {
       lcd.print(" ");
       blCh = 0;
     }
-
-    //stampa distanza
-    lcd.setCursor(2, 1);
-    if(a < 10) {
-      lcd.print("Distanza: ");
-      lcd.setCursor(12, 1);
+    /*
+        //stampa distanza
+        lcd.setCursor(2, 1);
+        if(a < 10) {
+          lcd.print("D: ");
+          lcd.setCursor(5, 1);
+        }
+        else {
+          lcd.print("D:");
+          lcd.setCursor(4, 1);
+        }
+        lcd.print(a);
+        lcd.setCursor(6, 1);
+        lcd.print("cm");
+    */
+    //stampa la media di 10 misurazioni
+    if (count == 10) {
+      media = somma / 10.0;
+      lcd.setCursor(4, 1);
+      if (a < 10) {
+        lcd.print("Dist: ");
+        lcd.setCursor(10, 1);
+      }
+      else {
+        lcd.print("Dist:");
+        lcd.setCursor(9, 1);
+      }
+      lcd.print(media, 1);
+      lcd.setCursor(14, 1);
+      lcd.print("cm");
+      count = 0;
+      somma = 0;
     }
     else {
-      lcd.print("Distanza:");
-      lcd.setCursor(11, 1);
+      somma += a;
+      count++;
     }
-    lcd.print(a);
-    lcd.setCursor(13, 1);
-    lcd.print("cm");
-    
+
+    //suono del buzzer
+    if (a < distMed && a >= distMin)
+    {
+      for (byte i = 0; i < 5; i++)
+      {
+        digitalWrite(buzzer, HIGH);
+        delay(1);//wait for 1ms
+        digitalWrite(buzzer, LOW);
+        delay(1);//wait for 1ms
+      }
+    }
+    else if (a < distMin)
+    {
+      for (byte i = 0; i < 50; i++)
+      {
+        digitalWrite(buzzer, HIGH);
+        delay(1);//wait for 1ms
+        digitalWrite(buzzer, LOW);
+        delay(1);//wait for 1ms
+      }
+    }
   }
+  /*
+    //suono del buzzer
+    if (a < 10)
+    {
+      for (byte i = 0; i < 5; i++)
+      {
+        digitalWrite(buzzer, HIGH);
+        delay(1);//wait for 1ms
+        digitalWrite(buzzer, LOW);
+        delay(1);//wait for 1ms
+      }
+    }*/
 }

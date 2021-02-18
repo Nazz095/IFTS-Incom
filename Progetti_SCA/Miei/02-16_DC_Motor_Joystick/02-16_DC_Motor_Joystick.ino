@@ -45,7 +45,7 @@ void loop() {
     dir = 0;
     fanSpeed = 0;
   }
-  //muovo il motore con la velocita' calcolata  dalla posizione di joystick
+  //muovo il motore con la velocita' ricavata dalla posizione di joystick
   analogWrite(ENABLE, fanSpeed);
 
   //scrivo nella seriale i valori soltanto ogni 500ms
